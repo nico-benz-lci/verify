@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, flash
 import pandas as pd
 
 
-url = "https://raw.githubusercontent.com/nico-benz-lci/verify/29e6e47fccd000732e8b66f01782a317d5f1ce92/output/results.csv"
+url = "https://raw.githubusercontent.com/nico-benz-lci/verify/main/output/results.csv"
 
 test_data = pd.io.parsers.read_csv(url, sep='\s*,\s*',engine='python')
 
