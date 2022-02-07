@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, flash
-import csv
 
-with open("https://github.com/nico-benz-lci/verify/blob/29e6e47fccd000732e8b66f01782a317d5f1ce92/output/results.csv") as f:
-    test_data = [{k:v for k, v in row.items()} for row in csv.DictReader(f, skipinitialspace=True)]
+import pandas as pd
+
+
+url = "https://raw.githubusercontent.com/nico-benz-lci/verify/29e6e47fccd000732e8b66f01782a317d5f1ce92/output/results.csv"
+
+test_data = pd.io.parsers.read_csv(url, sep='\s*,\s*',engine='python')
 
 app = Flask(__name__)
 app.secret_key = "abcdefg"
@@ -15,29 +18,24 @@ def index():
 
 @app.route("/verify", methods=["POST", "GET"])
 def verify():
-    counter = 0
-    for i in test_data:
-        if str(request.form["name_input"]) in i.values():
-            name = "Name: " + i["Name"]
-            first_name = "First Name: " + i["First Name"]
-            date_of_birth = "Date of Birth: " + i["Date of Birth"]
-            city = "City: " + i["City"]
-            country = "Country: " + i["Country"]
-            date_of_exam = "Date of Exam: " + i["Date of Exam"]
-            date_of_issue = "Date of Issue: " + i["Date of Issue"]
-        else:
-            counter += 1
+    search = str(request.form["name_input"])
+    if str(request.form["name_input"]) in test_data.values:
+        index = test_data.index
+        condition = test_data["Verification Code"] == search
+        code_indice = index[condition]
+        code_indice_list = code_indice.tolist()
 
-    flash("Code entered: " + str(request.form["name_input"]))
-    if counter >= len(test_data):
-        flash("Code not found")
-    else:
+        fname = test_data.loc[code_indice_list[0], "First Name"]
+        name = test_data.loc[code_indice_list[0], "Name"]
+        bday = test_data.loc[code_indice_list[0], "Date of Birth"]
+        city = test_data.loc[code_indice_list[0], "City"]
+        country = test_data.loc[code_indice_list[0], "Country"]
+        doe = test_data.loc[code_indice_list[0], "Date of Exam"]
+        flash("Code entered: " + str(request.form["name_input"]))
         flash("Successfully verified!")
-        flash(f"{name}")
-        flash(f"{first_name}")
-        flash(f"{date_of_birth}")
-        flash(f"{city}")
-        flash(f"{country}")
-        flash(f"{date_of_exam}")
-        flash(f"{date_of_issue}")
+        flash(fname + " " + name + " from " + city + " (" + country + "), born on " + bday + ", took part in this exam on " + doe + ". ")
+    else:
+        flash("Code entered: " + str(request.form["name_input"]))
+        flash("Code not found in database!")
+
     return render_template("index.html")
