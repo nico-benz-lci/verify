@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, flash
 import csv
 
-with open("output/results.csv") as f:
+with open("https://github.com/nico-benz-lci/verify/blob/29e6e47fccd000732e8b66f01782a317d5f1ce92/output/results.csv") as f:
     test_data = [{k:v for k, v in row.items()} for row in csv.DictReader(f, skipinitialspace=True)]
 
 app = Flask(__name__)
